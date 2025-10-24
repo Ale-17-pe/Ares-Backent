@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="api-gateway" />
+        <module name="usuarios-service" />
+        <module name="membresias-service" />
+        <module name="reservas-services" />
+      </profile>
+      <profile name="Annotation profile for asistencias-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="asistencias-service" />
+      </profile>
+      <profile name="Annotation profile for pagosservice" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.40/lombok-1.18.40.jar" />
+        </processorPath>
+        <module name="pagosservice" />
+        <module name="notificaciones-service" />
+        <module name="calificaciones-service (1)" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="calificaciones-service" target="17" />
+      <module name="notificaciones-ervice" target="17" />
+      <module name="planes-service" target="17" />
+      <module name="Usuarios-services" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Usuarios-services" options="-parameters" />
+      <module name="api-gateway" options="-parameters" />
+      <module name="asistencias-service" options="-parameters" />
+      <module name="calificaciones-service" options="-parameters" />
+      <module name="calificaciones-service (1)" options="-parameters" />
+      <module name="membresias-service" options="-parameters" />
+      <module name="notificaciones-service" options="-parameters" />
+      <module name="pagosservice" options="-parameters" />
+      <module name="planes-service" options="-parameters" />
+      <module name="reservas-services" options="-parameters" />
+      <module name="usuarios-service" options="-parameters" />
+    </option>
+  </component>
+</project>

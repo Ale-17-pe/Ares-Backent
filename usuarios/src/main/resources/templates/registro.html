@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 30px;
+        }
+        form {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+        }
+        div { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #222;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #444; }
+        .mensaje {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .error { color: #d82c2c; }
+        .exito { color: #00a650; }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align:center;">Crear una Cuenta</h1>
+
+<form id="registroForm">
+    <div>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+    </div>
+    <div>
+        <label for="apellido">Apellido:</label>
+        <input type="text" id="apellido" name="apellido" required>
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <div>
+        <label for="password">Contraseña:</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Registrarse</button>
+</form>
+
+<div id="mensaje" class="mensaje"></div>
+
+<p style="text-align:center;">
+    ¿Ya tienes una cuenta? <a th:href="@{/login}">Inicia sesión aquí</a>
+</p>
+
+<script>
+    document.getElementById("registroForm").addEventListener("submit", async (e) => {
+        e.preventDefault(); // Evita recargar la página
+
+        const nombre = document.getElementById("nombre").value.trim();
+        const apellido = document.getElementById("apellido").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        const mensajeDiv = document.getElementById("mensaje");
+        mensajeDiv.textContent = "Registrando usuario...";
+        mensajeDiv.className = "mensaje";
+
+        try {
+            const response = await fetch("/api/usuarios/registrar", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ nombre, apellido, email, password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                mensajeDiv.textContent = "✅ Usuario registrado correctamente. Redirigiendo al login...";
+                mensajeDiv.classList.add("exito");
+
+                // Esperar 3 segundos y redirigir
+                setTimeout(() => {
+                    window.location.href = "/login";
+                }, 3000);
+
+                document.getElementById("registroForm").reset();
+            } else {
+                const error = await response.text();
+                mensajeDiv.textContent = "⚠️ " + error;
+                mensajeDiv.classList.add("error");
+            }
+        } catch (error) {
+            mensajeDiv.textContent = "❌ Error al registrar: " + error.message;
+            mensajeDiv.classList.add("error");
+        }
+    });
+</script>
+
+</body>
+</html>

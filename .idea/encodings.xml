@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/apigateway/notificaciones-ervice/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/apigateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/apigateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/asistencias-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/calificaciones-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/membresias/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/notificacion-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/notificaciones-service/calificaciones-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/notificaciones-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/pagosservice/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/planes/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/reservas/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/usuarios-services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/usuarios/notificaciones-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/usuarios/src/main/java" charset="UTF-8" />
+  </component>
+</project>
