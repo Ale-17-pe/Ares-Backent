@@ -24,7 +24,6 @@ public class CalificacionController {
     public ResponseEntity<Opinion> crearOpinion(@RequestBody Opinion opinion) {
         try {
             Opinion nuevaOpinion = service.crearOpinion(opinion);
-            // 201 Created: La opinión se ha recibido y está PENDIENTE de moderación
             return new ResponseEntity<>(nuevaOpinion, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

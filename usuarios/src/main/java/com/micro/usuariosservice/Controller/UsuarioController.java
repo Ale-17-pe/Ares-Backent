@@ -93,4 +93,21 @@ public class UsuarioController {
         usuarioService.eliminar(id);
         return ResponseEntity.ok(Map.of("message", "Usuario eliminado exitosamente"));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+        try {
+            Usuario usuario = usuarioService.obtenerPorId(id);
+            if (usuario != null) {
+                usuario.setPassword(null);
+                return ResponseEntity.ok(usuario);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Usuario no encontrado"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al obtener usuario"));
+        }
+    }
 }

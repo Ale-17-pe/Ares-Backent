@@ -23,8 +23,11 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public Usuario registrar(Usuario usuario) {
-        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new IllegalStateException("El email ya está registrado");
+        }
+        if (usuarioRepository.existsByDni(usuario.getDni())) {
+            throw new IllegalStateException("El DNI ya está registrado");
         }
 
         String hashed = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
@@ -40,7 +43,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
             throw new IllegalStateException("El email ya está registrado");
         }
-
+        if (usuarioRepository.existsByDni(usuario.getDni())) {
+            throw new IllegalStateException("El DNI ya está registrado");
+        }
         String hashed = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
         usuario.setPassword(hashed);
         usuario.setRole("RECEPCIONISTA");
@@ -73,6 +78,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioExistente.setApellido(datosActualizados.getApellido());
         usuarioExistente.setTelefono(datosActualizados.getTelefono());
         usuarioExistente.setDireccion(datosActualizados.getDireccion());
+        usuarioExistente.setGenero(datosActualizados.getGenero());
+        usuarioExistente.setFechaNacimiento(datosActualizados.getFechaNacimiento());
 
         return usuarioRepository.save(usuarioExistente);
     }
@@ -85,5 +92,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public void eliminar(Long id) {
         usuarioRepository.deleteById(id);
+    }
+
+    @Override
+    public Usuario obtenerPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new IllegalStateException("Usuario no encontrado"));
     }
 }

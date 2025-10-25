@@ -18,4 +18,5 @@ public interface UsuarioService {
     Usuario actualizar(Long id, Usuario datosActualizados);
     List<Usuario> listar();
     void eliminar(Long id);
+    Usuario obtenerPorId(Long id);
 }
