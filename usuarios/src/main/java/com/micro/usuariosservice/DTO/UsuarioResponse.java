@@ -1,14 +1,24 @@
 package com.micro.usuariosservice.DTO;
 
-import com.micro.usuariosservice.Model.Usuario;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.micro.usuariosservice.Model.Enum.Roles;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UsuarioResponse {
-    private String message;
-    private Usuario usuario;
+    private Long id;
+    private String nombre;
+    private String apellido;
+    private String email;
+    private Roles role;
+
+    private String dni;
+    private String direccion;
+    private String telefono;
+
+    private Boolean activo;
+    private LocalDateTime fechaRegistro;
 }

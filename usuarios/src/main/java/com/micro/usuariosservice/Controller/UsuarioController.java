@@ -1,113 +1,103 @@
 package com.micro.usuariosservice.Controller;
 
+import com.micro.usuariosservice.DTO.*;
 import com.micro.usuariosservice.Model.Usuario;
 import com.micro.usuariosservice.Service.UsuarioService;
+import com.micro.usuariosservice.Util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final JwtUtil jwtUtil;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(UsuarioService usuarioService, JwtUtil jwtUtil) {
         this.usuarioService = usuarioService;
+        this.jwtUtil = jwtUtil;
     }
 
-    @PostMapping("/registrar")
-    public ResponseEntity<?> registrarUsuario(@RequestBody Usuario usuario) {
-        try {
-            Usuario nuevoUsuario = usuarioService.registrar(usuario);
-            nuevoUsuario.setPassword(null);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Usuario registrado exitosamente");
-            response.put("usuario", nuevoUsuario);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error al registrar usuario"));
-        }
-    }
-    @PostMapping("/crear-recepcionista")
-    public ResponseEntity<?> crearRecepcionista(@RequestBody Usuario usuario) {
-        try {
-            Usuario nuevo = usuarioService.registrarRecepcionista(usuario);
-            nuevo.setPassword(null);
-            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                    "message", "Recepcionista creado exitosamente",
-                    "usuario", nuevo
-            ));
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
+    // 🟩 Registrar Cliente
+    @PostMapping("/clientes")
+    public ResponseEntity<ApiResponse<Long>> registrarCliente(@Valid @RequestBody ClienteRequest request) {
+        Usuario nuevoCliente = usuarioService.registrarCliente(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Cliente registrado exitosamente", nuevoCliente.getId()));
     }
 
+    // 🟩 Registrar Recepcionista
+    @PostMapping("/recepcionistas")
+    public ResponseEntity<ApiResponse<Long>> crearRecepcionista(@Valid @RequestBody RecepcionistaRequest request) {
+        Usuario nuevoRecepcionista = usuarioService.registrarRecepcionista(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Recepcionista creado exitosamente", nuevoRecepcionista.getId()));
+    }
+
+    // 🟩 Registrar Administrador
+    @PostMapping("/administradores")
+    public ResponseEntity<ApiResponse<Long>> crearAdministrador(@Valid @RequestBody AdministradorRequest request) {
+        Usuario nuevoAdministrador = usuarioService.registrarAdministrador(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Administrador creado exitosamente", nuevoAdministrador.getId()));
+    }
+
+    // 🟨 Login de usuario
     @PostMapping("/login")
-    public ResponseEntity<?> loginUsuario(@RequestBody Usuario usuario) {
-        return usuarioService.login(usuario)
-                .<ResponseEntity<?>>map(user -> {
-                    user.setPassword(null);
-
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("message", "Inicio de sesión exitoso");
-                    response.put("usuario", user);
-
-                    return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<LoginResponse>> loginUsuario(@Valid @RequestBody LoginRequest credenciales) {
+        return usuarioService.login(credenciales)
+                .map(user -> {
+                    String token = jwtUtil.generateToken(user);
+                    LoginResponse response = usuarioService.mapToLoginResponse(user);
+                    response.setToken(token);
+                    return ResponseEntity.ok(ApiResponse.success("Inicio de sesión exitoso", response));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Credenciales inválidas")));
+                        .body(ApiResponse.error("Credenciales inválidas")));
     }
 
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Usuario datos) {
-        try {
-            Usuario actualizado = usuarioService.actualizar(id, datos);
-            actualizado.setPassword(null);
-            return ResponseEntity.ok(Map.of(
-                    "message", "Perfil actualizado correctamente",
-                    "usuario", actualizado
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-        }
-    }
-    @GetMapping
-    public List<Usuario> listarUsuarios() {
-        return usuarioService.listar();
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
-        usuarioService.eliminar(id);
-        return ResponseEntity.ok(Map.of("message", "Usuario eliminado exitosamente"));
-    }
-
+    // 🟦 Obtener usuario por ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
-        try {
-            Usuario usuario = usuarioService.obtenerPorId(id);
-            if (usuario != null) {
-                usuario.setPassword(null);
-                return ResponseEntity.ok(usuario);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "Usuario no encontrado"));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error al obtener usuario"));
-        }
+    public ResponseEntity<ApiResponse<Usuario>> obtenerPorId(@PathVariable Long id) {
+        Usuario usuario = usuarioService.obtenerPorId(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+        usuario.setPassword(null);
+        return ResponseEntity.ok(ApiResponse.success("Usuario encontrado", usuario));
+    }
+
+    // 🟩 Actualizar datos de usuario
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<ApiResponse<Usuario>> actualizar(@PathVariable Long id, @RequestBody Usuario datos) {
+        Usuario actualizado = usuarioService.actualizar(id, datos);
+        actualizado.setPassword(null);
+        return ResponseEntity.ok(ApiResponse.success("Perfil actualizado correctamente", actualizado));
+    }
+
+    // 🟪 Listar administradores
+    @GetMapping("/administradores")
+    public ResponseEntity<ApiResponse<List<? extends Usuario>>> listarAdministradores() {
+        List<? extends Usuario> administradores = usuarioService.listarSoloAdministradores();
+        administradores.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(ApiResponse.success("Lista de administradores obtenida correctamente", administradores));
+    }
+
+    // 🟦 Listar todos los usuarios
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<Usuario>>> listarUsuarios() {
+        List<Usuario> usuarios = usuarioService.listarTodos();
+        usuarios.forEach(u -> u.setPassword(null));
+        return ResponseEntity.ok(ApiResponse.success("Lista de usuarios obtenida correctamente", usuarios));
+    }
+
+    // 🟥 Eliminar usuario
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
+        usuarioService.eliminar(id);
+        return ResponseEntity.ok(ApiResponse.success("Usuario eliminado exitosamente", null));
     }
 }
