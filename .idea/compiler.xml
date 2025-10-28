@@ -9,6 +9,8 @@
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
         <module name="usuarios-service" />
+        <module name="pagosservice" />
+        <module name="notificaciones-service" />
         <module name="membresias-service" />
         <module name="reservas-services" />
       </profile>
@@ -27,9 +29,8 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.40/lombok-1.18.40.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.40/lombok-1.18.40.jar" />
         </processorPath>
-        <module name="pagosservice" />
-        <module name="notificaciones-service" />
         <module name="calificaciones-service (1)" />
       </profile>
     </annotationProcessing>

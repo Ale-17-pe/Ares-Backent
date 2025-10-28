@@ -15,15 +15,13 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // ✅ Permitir tu frontend desplegado en Vercel
-        corsConfig.setAllowedOrigins(List.of("https://ares-front-end.vercel.app"));
+        //corsConfig.setAllowedOrigins(List.of("https://ares-front-end.vercel.app"));
 
-        // ✅ (Opcional) Si quieres permitir también localhost durante desarrollo:
-        // corsConfig.setAllowedOrigins(List.of("http://localhost:5173", "https://ares-front-end.vercel.app"));
+         corsConfig.setAllowedOrigins(List.of("http://localhost:5173"));
 
         corsConfig.addAllowedHeader("*");
         corsConfig.addAllowedMethod("*");
-        corsConfig.setAllowCredentials(true); // Muy importante si usas cookies o tokens con credenciales
+        corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);

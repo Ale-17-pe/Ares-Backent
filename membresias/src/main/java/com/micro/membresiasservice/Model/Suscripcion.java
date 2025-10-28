@@ -1,26 +1,43 @@
-    package com.micro.membresiasservice.Model;
+package com.micro.membresiasservice.Model;
 
-    import jakarta.persistence.*;
-    import lombok.*;
+import com.micro.membresiasservice.Model.Enum.EstadoSuscripcion;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    import java.time.LocalDate;
+import java.time.LocalDate;
 
-    @Data
-    @Entity
-    @Table(name = "suscripciones")
-    public class Suscripcion {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+@Data
+@NoArgsConstructor
+@Entity
+@Table(name = "suscripciones")
+public class Suscripcion {
 
-        @Column(nullable = false)
-        private Long usuarioId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @ManyToOne
-        @JoinColumn(name = "plan_id")
-        private PlanMembresia plan;
+    @NotNull(message = "El usuario es obligatorio")
+    @Column(nullable = false)
+    private Long usuarioId;
 
-        private LocalDate fechaInicio;
-        private LocalDate fechaFin;
-        private String estado;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", nullable = false)
+    private PlanMembresia plan;
+
+    @NotNull(message = "La fecha de inicio es obligatoria")
+    @Column(nullable = false)
+    private LocalDate fechaInicio;
+
+    @NotNull(message = "La fecha de fin es obligatoria")
+    @Column(nullable = false)
+    private LocalDate fechaFin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EstadoSuscripcion estado = EstadoSuscripcion.PENDIENTE;
+
+    @Column(nullable = false)
+    private LocalDate fechaCreacion = LocalDate.now();
+}

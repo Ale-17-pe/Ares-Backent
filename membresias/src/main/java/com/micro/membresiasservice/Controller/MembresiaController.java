@@ -1,100 +1,150 @@
 package com.micro.membresiasservice.Controller;
 
+import com.micro.membresiasservice.DTO.ApiResponse;
 import com.micro.membresiasservice.DTO.SuscripcionRequest;
+import com.micro.membresiasservice.Model.Enum.EstadoSuscripcion;
 import com.micro.membresiasservice.Model.PlanMembresia;
 import com.micro.membresiasservice.Model.Suscripcion;
-import com.micro.membresiasservice.Repository.PlanRepository;
-import com.micro.membresiasservice.Repository.SuscripcionRepository;
 import com.micro.membresiasservice.Services.MembresiaService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/membresias")
 public class MembresiaController {
 
     private final MembresiaService membresiaService;
 
-    public MembresiaController(PlanRepository planRepository, MembresiaService membresiaService, SuscripcionRepository suscripcionRepository) {
+    public MembresiaController(MembresiaService membresiaService) {
         this.membresiaService = membresiaService;
     }
 
-    @PostMapping("/crear")
-    public ResponseEntity<?> crearPlan(@RequestBody PlanMembresia planMembresia) {
-        PlanMembresia nueva = membresiaService.crearPlan(planMembresia);
-        return new ResponseEntity<>(nueva, HttpStatus.CREATED);
+    // ===========================
+    // 🔹 PLANES
+    // ===========================
+
+    @PostMapping("/planes")
+    public ResponseEntity<ApiResponse<PlanMembresia>> crearPlan(@RequestBody PlanMembresia planMembresia) {
+        PlanMembresia nuevo = membresiaService.crearPlan(planMembresia);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Plan creado exitosamente", nuevo));
     }
 
-    @GetMapping("/listar")
-    public ResponseEntity<List<PlanMembresia>> listarPlanes() {
-        return ResponseEntity.ok(membresiaService.listarPlanes());
+    @GetMapping("/planes")
+    public ResponseEntity<ApiResponse<List<PlanMembresia>>> listarPlanes() {
+        return ResponseEntity.ok(ApiResponse.success("Listado de planes", membresiaService.listarPlanes()));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PlanMembresia> obtenerPlan(@PathVariable Long id) {
+    @GetMapping("/planes/{id}")
+    public ResponseEntity<ApiResponse<PlanMembresia>> obtenerPlan(@PathVariable Long id) {
         return membresiaService.obtenerPlan(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(plan -> ResponseEntity.ok(ApiResponse.success("Plan encontrado", plan)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Plan no encontrado con ID: " + id)));
     }
 
-    @PutMapping("/actualizar/{id}")
-    public ResponseEntity<?> actualizarPlan(@PathVariable Long id, @RequestBody PlanMembresia planActualizado) {
+    @PutMapping("/planes/{id}")
+    public ResponseEntity<ApiResponse<PlanMembresia>> actualizarPlan(@PathVariable Long id,
+                                                                     @RequestBody PlanMembresia planActualizado) {
         try {
-            PlanMembresia plan = membresiaService.actualizarPlan(id, planActualizado);
-            return ResponseEntity.ok(plan);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            PlanMembresia actualizado = membresiaService.actualizarPlan(id, planActualizado);
+            return ResponseEntity.ok(ApiResponse.success("Plan actualizado correctamente", actualizado));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+    @DeleteMapping("/planes/{id}")
+    public ResponseEntity<ApiResponse<Void>> eliminarPlan(@PathVariable Long id) {
+        try {
+            membresiaService.eliminarPlan(id);
+            return ResponseEntity.ok(ApiResponse.success("Plan eliminado exitosamente", null));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         }
     }
 
-    @DeleteMapping("/eliminar/{id}")
-    public ResponseEntity<?> eliminarMembresia(@PathVariable Long id) {
-        membresiaService.eliminarPlan(id);
-        return ResponseEntity.ok(Map.of("message", "Membresía eliminada"));
-    }
+    // ===========================
+    // 🔹 SUSCRIPCIONES
+    // ===========================
 
     @PostMapping("/suscripciones")
-    public ResponseEntity<?> crearSuscripcion(@RequestBody SuscripcionRequest request) {
+    public ResponseEntity<ApiResponse<Suscripcion>> crearSuscripcion(@RequestBody SuscripcionRequest request) {
         try {
-            Suscripcion nuevaSuscripcion = membresiaService.crearSuscripcion(request);
-            return new ResponseEntity<>(nuevaSuscripcion, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            Suscripcion nueva = membresiaService.crearSuscripcion(request);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Suscripción creada exitosamente", nueva));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error al crear suscripción: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error interno al crear la suscripción"));
         }
-    }
-
-    @GetMapping("/suscripciones/usuario/{usuarioId}")
-    public ResponseEntity<?> verificarSuscripcionActiva(@PathVariable Long usuarioId) {
-        return membresiaService.verificarSuscripcionActiva(usuarioId)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "No hay suscripción activa")));
     }
 
     @GetMapping("/suscripciones")
-    public ResponseEntity<List<Suscripcion>> listarTodasLasSuscripciones() {
-        return ResponseEntity.ok(membresiaService.listarTodasLasSuscripciones());
+    public ResponseEntity<ApiResponse<List<Suscripcion>>> listarSuscripciones() {
+        List<Suscripcion> lista = membresiaService.listarTodasLasSuscripciones();
+        return ResponseEntity.ok(ApiResponse.success("Listado de suscripciones", lista));
     }
 
-    @GetMapping("/usuario/{usuarioId}/activa")
-    public ResponseEntity<Boolean> tieneMembresiaActiva(@PathVariable Long usuarioId) {
-        try {
-            boolean activa = membresiaService.verificarSuscripcionActiva(usuarioId)
-                    .map(suscripcion -> {
-                        // Verifica que esté activa y no vencida
-                        return suscripcion.getEstado().equalsIgnoreCase("ACTIVA")
-                                && suscripcion.getFechaFin().isAfter(LocalDate.now());
-                    })
-                    .orElse(false);
+    @GetMapping("/suscripciones/{id}")
+    public ResponseEntity<ApiResponse<Suscripcion>> obtenerSuscripcion(@PathVariable Long id) {
+        return membresiaService.obtenerSuscripcion(id)
+                .map(s -> ResponseEntity.ok(ApiResponse.success("Suscripción encontrada", s)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Suscripción no encontrada con ID: " + id)));
+    }
 
-            return ResponseEntity.ok(activa);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+    @GetMapping("/suscripciones/usuario/{usuarioId}")
+    public ResponseEntity<ApiResponse<Suscripcion>> verificarSuscripcionActiva(@PathVariable Long usuarioId) {
+        return membresiaService.verificarSuscripcionActiva(usuarioId)
+                .map(s -> ResponseEntity.ok(ApiResponse.success("Suscripción activa encontrada", s)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("El usuario no tiene suscripción activa.")));
+    }
+
+    @PutMapping("/suscripciones/{id}/cancelar")
+    public ResponseEntity<ApiResponse<Suscripcion>> cancelarSuscripcion(@PathVariable Long id) {
+        try {
+            Suscripcion cancelada = membresiaService.cancelarSuscripcion(id);
+            return ResponseEntity.ok(ApiResponse.success("Suscripción cancelada correctamente", cancelada));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
         }
+    }
+
+    @PutMapping("/suscripciones/{id}/estado")
+    public ResponseEntity<ApiResponse<Suscripcion>> actualizarEstado(@PathVariable Long id,
+                                                                     @RequestParam EstadoSuscripcion estado) {
+        try {
+            Suscripcion actualizada = membresiaService.actualizarEstado(id, estado);
+            return ResponseEntity.ok(ApiResponse.success("Estado de suscripción actualizado", actualizada));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+    @GetMapping("/usuario/{usuarioId}/activa")
+    public ResponseEntity<ApiResponse<Boolean>> tieneMembresiaActiva(@PathVariable Long usuarioId) {
+        boolean activa = membresiaService.verificarSuscripcionActiva(usuarioId)
+                .map(s -> s.getEstado() == EstadoSuscripcion.ACTIVA &&
+                        s.getFechaFin().isAfter(LocalDate.now()))
+                .orElse(false);
+
+        String mensaje = activa
+                ? "El usuario tiene una membresía activa"
+                : "El usuario no tiene una membresía activa";
+        return ResponseEntity.ok(ApiResponse.success(mensaje, activa));
     }
 }
